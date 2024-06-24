@@ -1,4 +1,3 @@
-use boring::ssl::SslCurve;
 use http::{
     header::{ACCEPT, ACCEPT_ENCODING, ACCEPT_LANGUAGE, UPGRADE_INSECURE_REQUESTS, USER_AGENT},
     HeaderMap, HeaderValue,
@@ -7,20 +6,13 @@ use std::sync::Arc;
 
 use crate::impersonate::{Http2Data, ImpersonateSettings};
 
-use super::create_ssl_connector;
+use super::{configure_curves_ssl, create_ssl_connector};
 
 pub(crate) fn get_settings(headers: HeaderMap) -> ImpersonateSettings {
     ImpersonateSettings {
         tls_builder_func: Arc::new(|h2| {
             let mut builder = create_ssl_connector(h2);
-            builder
-                .set_curves(&[
-                    SslCurve::X25519_KYBER768_DRAFT00,
-                    SslCurve::X25519,
-                    SslCurve::SECP256R1,
-                    SslCurve::SECP384R1,
-                ])
-                .unwrap();
+            configure_curves_ssl(&mut builder).expect("Failed to configure curves SSL");
             builder
         }),
         http2: Http2Data {
