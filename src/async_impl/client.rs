@@ -2078,6 +2078,69 @@ impl Client {
         }
     }
 
+    /// Returns a `String` of the header-value of all `Cookie` in a `Url`.
+    ///
+    /// # Errors
+    ///
+    /// This method fails if there was an error parsing the cookies.
+    #[cfg(feature = "cookies")]
+    pub fn get_cookies_for_domain(&self, url: &str) -> Result<String, Box<dyn std::error::Error>> {
+        // Parse the URL
+        let target_url = Url::parse(url)?;
+
+        // Check if the cookie_store is set
+        if let Some(cookie_store) = &self.inner.cookie_store {
+            // Retrieve the HeaderValue containing the cookies, if present
+            if let Some(cookies_header) = cookie_store.cookies(&target_url) {
+                let cookies_str = cookies_header.to_str()?;
+
+                Ok(cookies_str.to_owned())
+            } else {
+                // No cookies are present for the specified URL
+                Ok("".to_string())
+            }
+        } else {
+            // If no cookie store is configured, return an empty Vec
+            Ok("".to_string())
+        }
+    }
+
+    /// Injects a 'Cookie' into the 'CookieStore' for the specified URL.
+    ///
+    /// # Errors
+    ///
+    /// This method fails if there was an error parsing the cookies.
+    #[cfg(feature = "cookies")]
+    pub fn set_cookies(&self, cookies: Vec<HeaderValue>, url: &str) -> Result<(), Box<dyn std::error::Error>> {
+        // Parse the URL
+        let target_url = Url::parse(url)?;
+
+        // Check if the cookie_store is set
+        if let Some(cookie_store) = &self.inner.cookie_store {
+            let mut iter: core::slice::Iter<HeaderValue> = cookies.iter();
+            let dynamic_iter: &mut dyn Iterator<Item = &HeaderValue> = &mut iter;
+            cookie_store.set_cookies(dynamic_iter, &target_url);
+            Ok(())
+        } else {
+            // If no cookie store is configured, return an empty Vec
+            Err("No cookie store configured".into())
+        }
+    }
+
+    /// Changes proxy.
+    pub fn proxy(&self, proxy: Proxy) {
+        let new_proxies = vec![proxy];
+        let mut old_proxies = self.inner.proxies.lock().unwrap();
+        *old_proxies = new_proxies;
+        self.new_hyper_client();
+    }
+
+    /// Creates a new hyper client to use when switching to new proxies for example.
+    fn new_hyper_client(&self) {
+        let new_client = self.inner.hyper_builder.build(self.inner.connector.clone());
+        *self.inner.hyper.lock().unwrap() = new_client;
+    }
+
     fn proxy_auth(&self, dst: &Uri, headers: &mut HeaderMap) {
         if !self.inner.proxies_maybe_http_auth {
             return;
