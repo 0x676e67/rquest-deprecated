@@ -2335,12 +2335,13 @@ struct ClientRef {
     cookie_store: Option<Arc<dyn cookie::CookieStore>>,
     headers: HeaderMap,
     hyper: HyperClient,
+    hyper_builder: hyper::client::Builder,
     #[cfg(feature = "http3")]
     h3_client: Option<H3Client>,
     redirect_policy: redirect::Policy,
     referer: bool,
     request_timeout: Option<Duration>,
-    proxies: Arc<Vec<Proxy>>,
+    proxies: Arc<Mutex<Vec<Proxy>>>,
     proxies_maybe_http_auth: bool,
     https_only: bool,
 }
