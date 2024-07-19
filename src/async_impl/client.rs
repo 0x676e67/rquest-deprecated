@@ -1,7 +1,7 @@
 #[cfg(any(feature = "native-tls", feature = "__rustls",))]
 use std::any::Any;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use std::{collections::HashMap, convert::TryInto, net::SocketAddr};
 use std::{fmt, str};
