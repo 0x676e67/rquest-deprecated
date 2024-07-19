@@ -310,7 +310,7 @@ impl ClientBuilder {
         if config.auto_sys_proxy {
             proxies.push(Proxy::system());
         }
-        let proxies = Arc::new(proxies);
+        let proxies = Arc::new(Mutex::new(proxies));
 
         #[allow(unused)]
         #[cfg(feature = "http3")]
@@ -2054,7 +2054,7 @@ impl Client {
                     .body(body.into_stream())
                     .expect("valid request parts");
                 *req.headers_mut() = headers.clone();
-                ResponseFuture::Default(self.inner.hyper.request(req))
+                ResponseFuture::Default(self.inner.hyper.lock().unwrap().request(req))
             }
         };
 
@@ -2161,7 +2161,7 @@ impl Client {
             return;
         }
 
-        for proxy in self.inner.proxies.iter() {
+        for proxy in self.inner.proxies.lock().unwrap().iter() {
             if proxy.is_match(dst) {
                 if let Some(header) = proxy.http_basic_auth(dst) {
                     headers.insert(PROXY_AUTHORIZATION, header);
@@ -2488,7 +2488,7 @@ impl PendingRequest {
                     .body(body.into_stream())
                     .expect("valid request parts");
                 *req.headers_mut() = self.headers.clone();
-                ResponseFuture::Default(self.client.hyper.request(req))
+                ResponseFuture::Default(self.client.hyper.lock().unwrap().request(req))
             }
         };
 
@@ -2718,7 +2718,7 @@ impl Future for PendingRequest {
                                             .expect("valid request parts");
                                         *req.headers_mut() = headers.clone();
                                         std::mem::swap(self.as_mut().headers(), &mut headers);
-                                        ResponseFuture::Default(self.client.hyper.request(req))
+                                        ResponseFuture::Default(self.client.hyper.lock().unwrap().request(req))
                                     }
                                 };
 
