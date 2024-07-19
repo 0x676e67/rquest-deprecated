@@ -766,6 +766,8 @@ impl ClientBuilder {
 
         let proxies_maybe_http_auth = proxies.iter().any(|p| p.maybe_has_http_auth());
 
+        let hyper_client = builder.build(connector.clone());
+
         Ok(Client {
             inner: Arc::new(ClientRef {
                 accepts: config.accepts,
@@ -780,7 +782,9 @@ impl ClientBuilder {
                     }
                     None => None,
                 },
-                hyper: builder.build(connector),
+                hyper: Mutex::new(hyper_client),
+                connector,
+                hyper_builder: builder,
                 headers: config.headers,
                 redirect_policy: config.redirect_policy,
                 referer: config.referer,
