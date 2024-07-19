@@ -397,6 +397,7 @@ impl ClientBuilder {
             #[cfg(feature = "__tls")]
             match config.tls {
                 #[cfg(feature = "__boring")]
+
                 TlsBackend::BoringTls(tls) => Connector::new_boring_tls(
                     http,
                     tls,
@@ -764,7 +765,7 @@ impl ClientBuilder {
             builder.http1_allow_spaces_after_header_name_in_responses(true);
         }
 
-        let proxies_maybe_http_auth = proxies.iter().any(|p| p.maybe_has_http_auth());
+        let proxies_maybe_http_auth = proxies.lock().unwrap().iter().any(|p| p.maybe_has_http_auth());
 
         let hyper_client = builder.build(connector.clone());
 
@@ -2365,7 +2366,7 @@ impl ClientRef {
 
         f.field("accepts", &self.accepts);
 
-        if !self.proxies.is_empty() {
+        if !self.proxies.lock().unwrap().is_empty() {
             f.field("proxies", &self.proxies);
         }
 

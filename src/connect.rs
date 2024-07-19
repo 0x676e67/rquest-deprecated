@@ -38,7 +38,7 @@ pub(crate) type HttpConnector = hyper::client::HttpConnector<DynResolver>;
 #[derive(Clone)]
 pub(crate) struct Connector {
     inner: Inner,
-    proxies: Arc<Vec<Proxy>>,
+    proxies: Arc<Mutex<Vec<Proxy>>>,
     verbose: verbose::Wrapper,
     timeout: Option<Duration>,
     #[cfg(feature = "__tls")]
@@ -120,7 +120,7 @@ impl Connector {
     #[cfg(not(feature = "__tls"))]
     pub(crate) fn new(
         mut http: HttpConnector,
-        proxies: Arc<Vec<Proxy>>,
+        proxies: Arc<Mutex<Vec<Proxy>>>,
         local_addr_v4: Option<Ipv4Addr>,
         local_addr_v6: Option<Ipv6Addr>,
         nodelay: bool,
@@ -146,7 +146,7 @@ impl Connector {
     pub(crate) fn new_default_tls(
         http: HttpConnector,
         tls: TlsConnectorBuilder,
-        proxies: Arc<Vec<Proxy>>,
+        proxies: Arc<Mutex<Vec<Proxy>>>,
         user_agent: Option<HeaderValue>,
         local_addr_v4: Option<Ipv4Addr>,
         local_addr_v6: Option<Ipv6Addr>,
@@ -164,7 +164,7 @@ impl Connector {
     pub(crate) fn from_built_default_tls(
         mut http: HttpConnector,
         tls: TlsConnector,
-        proxies: Arc<Vec<Proxy>>,
+        proxies: Arc<Mutex<Vec<Proxy>>>,
         user_agent: Option<HeaderValue>,
         local_addr_v4: Option<Ipv4Addr>,
         local_addr_v6: Option<Ipv6Addr>,
@@ -197,7 +197,7 @@ impl Connector {
     pub(crate) fn new_boring_tls(
         mut http: HttpConnector,
         tls: Arc<dyn Fn(bool) -> SslConnectorBuilder + Send + Sync>,
-        proxies: Arc<Vec<Proxy>>,
+        proxies: Arc<Mutex<Vec<Proxy>>>,
         user_agent: Option<HeaderValue>,
         local_addr_v4: Option<Ipv4Addr>,
         local_addr_v6: Option<Ipv6Addr>,
@@ -230,7 +230,7 @@ impl Connector {
     pub(crate) fn new_rustls_tls<T>(
         mut http: HttpConnector,
         tls: rustls::ClientConfig,
-        proxies: Arc<Vec<Proxy>>,
+        proxies: Arc<Mutex<Vec<Proxy>>>,
         user_agent: Option<HeaderValue>,
         local_addr_v4: Option<Ipv4Addr>,
         local_addr_v6: Option<Ipv6Addr>,
@@ -246,7 +246,7 @@ impl Connector {
         }
         http.enforce_http(false);
 
-        let (tls, tls_proxy) = if proxies.is_empty() {
+        let (tls, tls_proxy) = if proxies.lock().unwrap().is_empty() {
             let tls = Arc::new(tls);
             (tls.clone(), tls)
         } else {
@@ -670,7 +670,7 @@ impl Service<Uri> for Connector {
     fn call(&mut self, dst: Uri) -> Self::Future {
         log::debug!("starting new connection: {:?}", dst);
         let timeout = self.timeout;
-        for prox in self.proxies.iter() {
+        for prox in self.proxies.lock().unwrap().iter() {
             if let Some(proxy_scheme) = prox.intercept(&dst) {
                 return Box::pin(with_timeout(
                     self.clone().connect_via_proxy(dst, proxy_scheme),
