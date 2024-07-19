@@ -2334,7 +2334,7 @@ struct ClientRef {
     #[cfg(feature = "cookies")]
     cookie_store: Option<Arc<dyn cookie::CookieStore>>,
     headers: HeaderMap,
-    hyper: HyperClient,
+    hyper: Mutex<HyperClient>,
     hyper_builder: hyper::client::Builder,
     #[cfg(feature = "http3")]
     h3_client: Option<H3Client>,
