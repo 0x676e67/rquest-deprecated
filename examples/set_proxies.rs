@@ -20,8 +20,5 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let resp = client.get("https://api.ip.sb/ip").send().await?;
     println!("{}", resp.text().await?);
 
-    let resp = client.get("https://api.ip.sb/ip").send().await?;
-    println!("{}", resp.text().await?);
-
     Ok(())
 }

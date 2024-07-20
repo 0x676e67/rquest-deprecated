@@ -699,71 +699,71 @@ impl ClientBuilder {
         connector.set_timeout(config.connect_timeout);
         connector.set_verbose(config.connection_verbose);
 
-        let mut hyper_builder = hyper::Client::builder();
+        let mut builder = hyper::Client::builder();
         if matches!(config.http_version_pref, HttpVersionPref::Http2) {
-            hyper_builder.http2_only(true);
+            builder.http2_only(true);
         }
 
         if let Some(http2_initial_stream_window_size) = config.http2_initial_stream_window_size {
-            hyper_builder.http2_initial_stream_window_size(http2_initial_stream_window_size);
+            builder.http2_initial_stream_window_size(http2_initial_stream_window_size);
         }
         if let Some(http2_initial_connection_window_size) =
             config.http2_initial_connection_window_size
         {
-            hyper_builder
+            builder
                 .http2_initial_connection_window_size(http2_initial_connection_window_size);
         }
         if config.http2_adaptive_window {
-            hyper_builder.http2_adaptive_window(true);
+            builder.http2_adaptive_window(true);
         }
         if let Some(http2_max_frame_size) = config.http2_max_frame_size {
-            hyper_builder.http2_max_frame_size(http2_max_frame_size);
+            builder.http2_max_frame_size(http2_max_frame_size);
         }
         if let Some(max) = config.http2_max_concurrent_streams {
-            hyper_builder.http2_max_concurrent_streams(max);
+            builder.http2_max_concurrent_streams(max);
         }
         if let Some(max) = config.http2_max_header_list_size {
-            hyper_builder.http2_max_header_list_size(max);
+            builder.http2_max_header_list_size(max);
         }
         if let Some(opt) = config.http2_enable_push {
-            hyper_builder.http2_enable_push(opt);
+            builder.http2_enable_push(opt);
         }
         if let Some(max) = config.http2_header_table_size {
-            hyper_builder.http2_header_table_size(max);
+            builder.http2_header_table_size(max);
         }
         if let Some(http2_keep_alive_interval) = config.http2_keep_alive_interval {
-            hyper_builder.http2_keep_alive_interval(http2_keep_alive_interval);
+            builder.http2_keep_alive_interval(http2_keep_alive_interval);
         }
         if let Some(http2_keep_alive_timeout) = config.http2_keep_alive_timeout {
-            hyper_builder.http2_keep_alive_timeout(http2_keep_alive_timeout);
+            builder.http2_keep_alive_timeout(http2_keep_alive_timeout);
         }
         if config.http2_keep_alive_while_idle {
-            hyper_builder.http2_keep_alive_while_idle(true);
+            builder.http2_keep_alive_while_idle(true);
         }
 
-        hyper_builder.http2_agent_profile(config.profile.into());
-        hyper_builder.pool_idle_timeout(config.pool_idle_timeout);
-        hyper_builder.pool_max_idle_per_host(config.pool_max_idle_per_host);
+        builder.http2_agent_profile(config.profile.into());
+        builder.pool_idle_timeout(config.pool_idle_timeout);
+        builder.pool_max_idle_per_host(config.pool_max_idle_per_host);
         connector.set_keepalive(config.tcp_keepalive);
 
         if config.http09_responses {
-            hyper_builder.http09_responses(true);
+            builder.http09_responses(true);
         }
 
         if config.http1_title_case_headers {
-            hyper_builder.http1_title_case_headers(true);
+            builder.http1_title_case_headers(true);
         }
 
         if config.http1_allow_obsolete_multiline_headers_in_responses {
-            hyper_builder.http1_allow_obsolete_multiline_headers_in_responses(true);
+            builder.http1_allow_obsolete_multiline_headers_in_responses(true);
         }
 
         if config.http1_ignore_invalid_headers_in_responses {
-            hyper_builder.http1_ignore_invalid_headers_in_responses(true);
+            builder.http1_ignore_invalid_headers_in_responses(true);
         }
 
         if config.http1_allow_spaces_after_header_name_in_responses {
-            hyper_builder.http1_allow_spaces_after_header_name_in_responses(true);
+            builder.http1_allow_spaces_after_header_name_in_responses(true);
         }
 
         let proxies_maybe_http_auth = proxies
@@ -786,7 +786,7 @@ impl ClientBuilder {
                     }
                     None => None,
                 },
-                hyper: hyper_builder.build(connector),
+                hyper: builder.build(connector),
                 headers: config.headers,
                 redirect_policy: config.redirect_policy,
                 referer: config.referer,
