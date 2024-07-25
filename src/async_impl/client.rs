@@ -2102,6 +2102,7 @@ impl Client {
                 break;
             }
         }
+        
     }
 
     /// Get the client user agent
@@ -2182,6 +2183,7 @@ impl Client {
         Arc::make_mut(&mut self.inner).hyper.set_local_addresses(addr_ipv4, addr_ipv6);
         self.inner.hyper.reset_pool_idle();
     }
+
 }
 
 impl fmt::Debug for Client {
