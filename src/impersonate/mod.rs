@@ -163,3 +163,4 @@ pub(crate) struct ImpersonateContext {
     pub certs_verification: bool,
     pub h2: bool,
 }
+
