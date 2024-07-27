@@ -6,7 +6,7 @@ use std::error::Error;
 async fn main() -> Result<(), Box<dyn Error>> {
     // Build a client to mimic Edge127
     let client = rquest::Client::builder()
-        .impersonate(Impersonate::Safari17_5)
+        .impersonate(Impersonate::Edge127)
         .enable_ech_grease()
         .permute_extensions()
         .cookie_store(true)

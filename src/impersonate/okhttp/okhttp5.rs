@@ -1,9 +1,6 @@
 use super::base_ssl_builder;
 use crate::impersonate::{BoringTlsConnector, Http2Data, ImpersonateSettings};
-use boring::{
-    error::ErrorStack,
-    ssl::SslConnectorBuilder,
-};
+use boring::{error::ErrorStack, ssl::SslConnectorBuilder};
 use http::{
     header::{ACCEPT, ACCEPT_ENCODING, ACCEPT_LANGUAGE, USER_AGENT},
     HeaderMap, HeaderValue,
