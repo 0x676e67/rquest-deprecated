@@ -34,11 +34,7 @@ impl Extension for ChromeExtension {
         builder.set_default_verify_paths()?;
         builder.set_grease_enabled(true);
         builder.enable_ocsp_stapling();
-        builder.set_curves(&[
-            SslCurve::X25519,
-            SslCurve::SECP256R1,
-            SslCurve::SECP384R1,
-        ])?;
+        builder.set_curves(&[SslCurve::X25519, SslCurve::SECP256R1, SslCurve::SECP384R1])?;
         builder.set_sigalgs_list(&SIGALGS_LIST.join(":"))?;
         builder.enable_signed_cert_timestamps();
         builder.add_cert_compression_alg(CertCompressionAlgorithm::Brotli)?;
@@ -70,11 +66,7 @@ impl Extension for EdgeExtension {
         builder.set_default_verify_paths()?;
         builder.set_grease_enabled(true);
         builder.enable_ocsp_stapling();
-        builder.set_curves(&[
-            SslCurve::X25519,
-            SslCurve::SECP256R1,
-            SslCurve::SECP384R1,
-        ])?;
+        builder.set_curves(&[SslCurve::X25519, SslCurve::SECP256R1, SslCurve::SECP384R1])?;
         builder.set_sigalgs_list(&SIGALGS_LIST.join(":"))?;
         builder.enable_signed_cert_timestamps();
         builder.add_cert_compression_alg(CertCompressionAlgorithm::Brotli)?;
