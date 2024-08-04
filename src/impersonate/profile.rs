@@ -97,8 +97,7 @@ fn get_settings(ver: Impersonate) -> ImpersonateSettings {
 }
 
 #[allow(missing_docs)]
-#[derive(Clone, Copy, Debug)]
-#[derive(Default)]
+#[derive(Clone, Copy, Debug, Default)]
 pub enum Impersonate {
     Chrome100,
     Chrome101,
@@ -143,7 +142,6 @@ pub enum Impersonate {
     Edge122,
     Edge127,
 }
-
 
 /// Impersonate version from string
 impl FromStr for Impersonate {

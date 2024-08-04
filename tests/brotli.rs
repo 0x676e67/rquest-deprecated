@@ -88,9 +88,7 @@ async fn test_accept_encoding_header_is_not_changed_if_set() {
 async fn brotli_case(response_size: usize, chunk_size: usize) {
     use futures_util::stream::StreamExt;
 
-    let content: String = (0..response_size)
-        .map(|i| format!("test {}", i))
-        .collect();
+    let content: String = (0..response_size).map(|i| format!("test {}", i)).collect();
 
     let mut encoder = brotli_crate::CompressorReader::new(content.as_bytes(), 4096, 5, 20);
     let mut brotlied_content = Vec::new();
