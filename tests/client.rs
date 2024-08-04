@@ -1,6 +1,5 @@
 #![cfg(not(target_arch = "wasm32"))]
 mod support;
-use rquest;
 
 use futures_util::stream::StreamExt;
 #[cfg(feature = "json")]

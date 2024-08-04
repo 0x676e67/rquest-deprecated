@@ -1,4 +1,3 @@
-use rquest;
 mod support;
 use support::server;
 
@@ -91,7 +90,6 @@ async fn gzip_case(response_size: usize, chunk_size: usize) {
     use futures_util::stream::StreamExt;
 
     let content: String = (0..response_size)
-        .into_iter()
         .map(|i| format!("test {}", i))
         .collect();
     let mut encoder = libflate::gzip::Encoder::new(Vec::new()).unwrap();

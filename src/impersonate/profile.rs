@@ -98,6 +98,7 @@ fn get_settings(ver: Impersonate) -> ImpersonateSettings {
 
 #[allow(missing_docs)]
 #[derive(Clone, Copy, Debug)]
+#[derive(Default)]
 pub enum Impersonate {
     Chrome100,
     Chrome101,
@@ -115,6 +116,7 @@ pub enum Impersonate {
     Chrome120,
     Chrome123,
     Chrome124,
+    #[default]
     Chrome126,
     Chrome127,
     SafariIos17_2,
@@ -142,11 +144,6 @@ pub enum Impersonate {
     Edge127,
 }
 
-impl Default for Impersonate {
-    fn default() -> Self {
-        Impersonate::Chrome126
-    }
-}
 
 /// Impersonate version from string
 impl FromStr for Impersonate {
@@ -270,14 +267,14 @@ pub enum ClientProfile {
     Edge,
 }
 
-impl Into<AgentProfile> for ClientProfile {
-    fn into(self) -> AgentProfile {
-        match self {
-            Self::Chrome => AgentProfile::Chrome,
-            Self::OkHttp => AgentProfile::OkHttp,
-            Self::Safari => AgentProfile::Safari,
-            Self::Firefox => AgentProfile::Firefox,
-            Self::Edge => AgentProfile::Edge,
+impl From<ClientProfile> for AgentProfile {
+    fn from(val: ClientProfile) -> Self {
+        match val {
+            ClientProfile::Chrome => AgentProfile::Chrome,
+            ClientProfile::OkHttp => AgentProfile::OkHttp,
+            ClientProfile::Safari => AgentProfile::Safari,
+            ClientProfile::Firefox => AgentProfile::Firefox,
+            ClientProfile::Edge => AgentProfile::Edge,
         }
     }
 }

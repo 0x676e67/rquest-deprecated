@@ -1448,14 +1448,12 @@ impl Client {
             .uri(uri)
             .version(version);
 
-        let in_flight = match version {
-            _ => {
-                let mut req = builder
-                    .body(body.into_stream())
-                    .expect("valid request parts");
-                *req.headers_mut() = headers.clone();
-                ResponseFuture::Default(self.inner.hyper.request(req))
-            }
+        let in_flight = {
+            let mut req = builder
+                .body(body.into_stream())
+                .expect("valid request parts");
+            *req.headers_mut() = headers.clone();
+            ResponseFuture::Default(self.inner.hyper.request(req))
         };
 
         let timeout = timeout

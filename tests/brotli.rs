@@ -1,5 +1,4 @@
 mod support;
-use rquest;
 use std::io::Read;
 use support::server;
 
@@ -90,7 +89,6 @@ async fn brotli_case(response_size: usize, chunk_size: usize) {
     use futures_util::stream::StreamExt;
 
     let content: String = (0..response_size)
-        .into_iter()
         .map(|i| format!("test {}", i))
         .collect();
 
