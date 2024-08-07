@@ -213,7 +213,7 @@ name = "set_local_address"
 path = "examples/set_local_address.rs"
 required-features = ["blocking", "socks", "zstd"]
 
-[pexample]
+[[example]]
 name = "set_interface"
 path = "examples/set_interface.rs"
 
