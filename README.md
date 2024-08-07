@@ -66,23 +66,13 @@ rquest = { version = "0.11", features = ["websocket"] }
 ```
 
 ```rust,no_run
-use std::error::Error;
-use tungstenite::Message;
-
 use futures_util::{SinkExt, StreamExt, TryStreamExt};
-use rquest::{impersonate::Impersonate, Client};
+use rquest::{tls::Impersonate, Client, Message};
+use std::error::Error;
 
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn Error>> {
-    let websocket = Client::ws_builder()
-        .impersonate(Impersonate::Chrome120)
-        .build()?
-        .get("wss://echo.websocket.org")
-        .upgrade()
-        .send()
-        .await?
-        .into_websocket()
-        .await?;
+    let websocket = rquest::websocket("wss://echo.websocket.org").await?;
 
     let (mut tx, mut rx) = websocket.split();
 
