@@ -1331,9 +1331,9 @@ impl Client {
         ClientBuilder::new().build().expect("Client::new()")
     }
 
-    /// Creates a `ClientBuilder` to configure a `Client`.
+    /// Create a `ClientBuilder` specifically configured for WebSocket connections.  
     ///
-    /// This is the same as `ClientBuilder::new()`.
+    /// This method configures the `ClientBuilder` to use HTTP/1.0 only, which is required for certain WebSocket connections.  
     pub fn builder() -> ClientBuilder {
         ClientBuilder::new()
     }
