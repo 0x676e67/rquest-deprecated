@@ -1652,7 +1652,7 @@ impl Client {
     pub fn set_interface(&mut self, interface: &str) {
         Arc::make_mut(&mut self.inner)
             .hyper
-            .set_local_address(interface);
+            .set_interface(interface);
         self.inner.hyper.reset_pool_idle();
     }
 }
