@@ -5,13 +5,13 @@
 
 //! # rquest
 //!
-//! The `rquest` crate provides a convenient, higher-level HTTP
+//! The `rquest` crate provides a convenient, higher-level `HTTP`/`WebSocket`
 //! [`Client`][client].
 //!
-//! It handles many of the things that most people just expect an HTTP client
+//! It handles many of the things that most people just expect an `HTTP`/`WebSocket` client
 //! to do for them.
 //!
-//! In addition, it also provides common browser TLS/Http2 fingerprint simulation.
+//! In addition, it also provides common browser TLS/Http2 fingerprint impersonate.
 //!
 //! - [Impersonate](#impersonate) Chrome / Safari / Edge / OkHttp
 //! - Async and [blocking] Clients
