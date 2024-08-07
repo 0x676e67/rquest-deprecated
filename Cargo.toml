@@ -195,32 +195,28 @@ path = "examples/simple.rs"
 [[example]]
 name = "impersonate"
 path = "examples/impersonate.rs"
-required-features = ["blocking", "socks", "zstd"]
 
 [[example]]
 name = "psk_impersonate"
 path = "examples/psk_impersonate.rs"
-required-features = ["blocking", "socks", "zstd"]
 
 [[example]]
 name = "set_proxies"
 path = "examples/set_proxies.rs"
-required-features = ["blocking", "socks", "zstd"]
+required-features = ["socks"]
 
 [[example]]
 name = "set_local_address"
 path = "examples/set_local_address.rs"
-required-features = ["blocking", "socks", "zstd"]
 
 [[example]]
 name = "set_interface"
 path = "examples/set_interface.rs"
-required-features = ["blocking", "socks", "zstd"]
 
 [[example]]
 name = "websocket"
 path = "examples/websocket.rs"
-required-features = ["websocket", "blocking", "socks", "cookies"]
+required-features = ["websocket"]
 
 [[test]]
 name = "blocking"
