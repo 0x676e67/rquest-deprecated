@@ -1646,6 +1646,15 @@ impl Client {
             .set_local_addresses(addr_ipv4, addr_ipv6);
         self.inner.hyper.reset_pool_idle();
     }
+
+    /// Bind to an interface by `SO_BINDTODEVICE`.
+    #[cfg(any(target_os = "android", target_os = "fuchsia", target_os = "linux"))]
+    pub fn set_interface(&mut self, interface: &str) {
+        Arc::make_mut(&mut self.inner)
+            .hyper
+            .set_local_address(interface);
+        self.inner.hyper.reset_pool_idle();
+    }
 }
 
 impl fmt::Debug for Client {

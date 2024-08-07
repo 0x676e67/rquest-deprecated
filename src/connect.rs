@@ -166,6 +166,16 @@ impl Connector {
         }
     }
 
+    #[cfg(any(target_os = "android", target_os = "fuchsia", target_os = "linux"))]
+    pub(crate) fn set_interface(&mut self, interface: &str) {
+        match &mut self.inner {
+            #[cfg(not(feature = "__tls"))]
+            Inner::Http(http) => http.set_interface(interface),
+            #[cfg(feature = "__boring")]
+            Inner::BoringTls { http, .. } => http.set_interface(interface),
+        }
+    }
+
     #[cfg(feature = "socks")]
     async fn connect_socks(&self, dst: Uri, proxy: ProxyScheme) -> Result<Conn, BoxError> {
         let dns = match proxy {
