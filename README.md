@@ -17,9 +17,9 @@ An ergonomic, batteries included `HTTP`/`WebSocket` Rust client with TLS/JA3/JA4
 
 Additional learning resources include:
 
- - [The Rust Cookbook](https://rust-lang-nursery.github.io/rust-cookbook/web/clients.html)
- - [Repository Examples](https://github.com/0x676e67/rquest/tree/master/examples)
- - [API Documentation](https://docs.rs/rquest)
+- [The Rust Cookbook](https://rust-lang-nursery.github.io/rust-cookbook/web/clients.html)
+- [Repository Examples](https://github.com/0x676e67/rquest/tree/master/examples)
+- [API Documentation](https://docs.rs/rquest)
 
 
 ### Usage
