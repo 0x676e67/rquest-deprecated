@@ -220,8 +220,8 @@ impl StdError for Error {
 }
 
 #[cfg(feature = "websocket")]
-impl From<tungstenite::Error> for Error {
-    fn from(err: tungstenite::Error) -> Error {
+impl From<async_tungstenite::tungstenite::Error> for Error {
+    fn from(err: async_tungstenite::tungstenite::Error) -> Error {
         Error::new(Kind::Upgrade, Some(err))
     }
 }

@@ -409,16 +409,6 @@ impl ClientBuilder {
         configure_impersonate(impersonate, self)
     }
 
-    /// Sets the necessary values to mimic the specified impersonate version. (websocket)
-    #[cfg(feature = "__impersonate")]
-    pub fn impersonate_websocket(mut self, impersonate: Impersonate) -> ClientBuilder {
-        use crate::tls::configure_impersonate;
-
-        self.config.impersonate = impersonate;
-        self = self.http1_only();
-        configure_impersonate(impersonate, self)
-    }
-
     /// Enable Encrypted Client Hello (Secure SNI)
     #[cfg(feature = "__impersonate")]
     pub fn enable_ech_grease(mut self) -> ClientBuilder {
@@ -1346,6 +1336,13 @@ impl Client {
     /// This is the same as `ClientBuilder::new()`.
     pub fn builder() -> ClientBuilder {
         ClientBuilder::new()
+    }
+
+    /// Create a `ClientBuilder` to configure a `Client`.
+    ///
+    /// This is required http1 only.
+    pub fn ws_builder() -> ClientBuilder {
+        Self::builder().http1_only()
     }
 
     /// Convenience method to make a `GET` request to a URL.
