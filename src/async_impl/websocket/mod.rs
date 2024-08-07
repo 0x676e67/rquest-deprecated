@@ -1,4 +1,6 @@
 #![allow(missing_docs)]
+#[cfg(feature = "json")]
+mod json;
 mod message;
 
 use std::{

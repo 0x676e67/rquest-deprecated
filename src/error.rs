@@ -226,6 +226,13 @@ impl From<async_tungstenite::tungstenite::Error> for Error {
     }
 }
 
+#[cfg(feature = "json")]
+impl From<serde_json::Error> for Error {
+    fn from(err: serde_json::Error) -> Error {
+        Error::new(Kind::Decode, Some(err))
+    }
+}
+
 #[derive(Debug)]
 pub(crate) enum Kind {
     Builder,

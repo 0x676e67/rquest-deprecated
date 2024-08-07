@@ -74,8 +74,8 @@ use rquest::{impersonate::Impersonate, Client};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    let websocket = Client::builder()
-        .impersonate_websocket(Impersonate::Chrome120)
+    let websocket = Client::ws_builder()
+        .impersonate(Impersonate::Chrome120)
         .build()?
         .get("wss://echo.websocket.org")
         .upgrade()
