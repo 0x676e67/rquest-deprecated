@@ -328,21 +328,19 @@ impl SslConnectExtension for ConnectConfiguration {
         &mut self,
         http_version: HttpVersionPref,
     ) -> &mut ConnectConfiguration {
-        match http_version {
-            HttpVersionPref::Http1 => {}
-            HttpVersionPref::Http2 | HttpVersionPref::All => {
-                const ALPN_H2: &str = "h2";
-                const ALPN_H2_LENGTH: usize = 2;
-                unsafe {
-                    boring_sys::SSL_add_application_settings(
-                        self.as_ptr(),
-                        ALPN_H2.as_ptr(),
-                        ALPN_H2_LENGTH,
-                        std::ptr::null(),
-                        0,
-                    );
-                };
-            }
+        let (alpn, alpn_len) = match http_version {
+            HttpVersionPref::Http1 => ("http/1.1", 8),
+            HttpVersionPref::Http2 | HttpVersionPref::All => ("h2", 2),
+        };
+
+        unsafe {
+            boring_sys::SSL_add_application_settings(
+                self.as_ptr(),
+                alpn.as_ptr(),
+                alpn_len,
+                std::ptr::null(),
+                0,
+            );
         }
 
         self
