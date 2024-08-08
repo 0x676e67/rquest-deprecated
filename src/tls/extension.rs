@@ -257,20 +257,13 @@ impl SslExtension for SslConnectorBuilder {
         min_tls_version: Option<Version>,
     ) -> Result<SslConnectorBuilder, ErrorStack> {
         if let Some(version) = min_tls_version {
-            match version.0 {
-                super::InnerVersion::Tls1_0 => {
-                    self.set_min_proto_version(Some(SslVersion::TLS1))?
-                }
-                super::InnerVersion::Tls1_1 => {
-                    self.set_min_proto_version(Some(SslVersion::TLS1_1))?
-                }
-                super::InnerVersion::Tls1_2 => {
-                    self.set_min_proto_version(Some(SslVersion::TLS1_2))?
-                }
-                super::InnerVersion::Tls1_3 => {
-                    self.set_min_proto_version(Some(SslVersion::TLS1_3))?
-                }
-            }
+            let ssl_version = match version.0 {
+                super::InnerVersion::Tls1_0 => SslVersion::TLS1,
+                super::InnerVersion::Tls1_1 => SslVersion::TLS1_1,
+                super::InnerVersion::Tls1_2 => SslVersion::TLS1_2,
+                super::InnerVersion::Tls1_3 => SslVersion::TLS1_3,
+            };
+            self.set_min_proto_version(Some(ssl_version))?
         }
 
         Ok(self)
@@ -281,20 +274,14 @@ impl SslExtension for SslConnectorBuilder {
         max_tls_version: Option<Version>,
     ) -> Result<SslConnectorBuilder, ErrorStack> {
         if let Some(version) = max_tls_version {
-            match version.0 {
-                super::InnerVersion::Tls1_0 => {
-                    self.set_max_proto_version(Some(SslVersion::TLS1))?
-                }
-                super::InnerVersion::Tls1_1 => {
-                    self.set_max_proto_version(Some(SslVersion::TLS1_1))?
-                }
-                super::InnerVersion::Tls1_2 => {
-                    self.set_max_proto_version(Some(SslVersion::TLS1_2))?
-                }
-                super::InnerVersion::Tls1_3 => {
-                    self.set_max_proto_version(Some(SslVersion::TLS1_3))?
-                }
-            }
+            let ssl_version = match version.0 {
+                super::InnerVersion::Tls1_0 => SslVersion::TLS1,
+                super::InnerVersion::Tls1_1 => SslVersion::TLS1_1,
+                super::InnerVersion::Tls1_2 => SslVersion::TLS1_2,
+                super::InnerVersion::Tls1_3 => SslVersion::TLS1_3,
+            };
+
+            self.set_max_proto_version(Some(ssl_version))?
         }
 
         Ok(self)
