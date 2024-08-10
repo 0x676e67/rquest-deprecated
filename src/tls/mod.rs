@@ -101,7 +101,7 @@ impl Debug for TlsConnectorBuilder {
 pub struct TlsConnector {
     /// The inner `SslConnectorBuilder`.
     builder: TlsConnectorBuilder,
-    /// The TLS connector.
+    /// The TLS connector layer.
     inner: Arc<OnceCell<HttpsLayer>>,
 }
 
