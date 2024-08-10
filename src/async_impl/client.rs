@@ -247,8 +247,8 @@ impl ClientBuilder {
                 redirect_policy: Arc::new(config.redirect_policy),
                 referer: config.referer,
                 request_timeout: config.timeout,
-                proxies_maybe_http_auth,
                 https_only: config.https_only,
+                proxies_maybe_http_auth,
             }),
         })
     }

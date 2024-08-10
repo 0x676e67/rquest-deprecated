@@ -16,7 +16,7 @@ pub(crate) use self::profile::connect_settings;
 use crate::async_impl::client::HttpVersionPref;
 use crate::connect::HttpConnector;
 use crate::tls::extension::{SslConnectExtension, SslExtension};
-use boring::ssl::{SslConnector, SslMethod};
+use boring::ssl::{SslConnector, SslMethod, SslSessionCacheMode};
 use boring::{
     error::ErrorStack,
     ssl::{ConnectConfiguration, SslConnectorBuilder},
@@ -157,16 +157,20 @@ impl TlsConnector {
                 | Impersonate::Edge127
         );
 
-        if psk_extension || tls.pre_shared_key {
-            HttpsLayer::with_connector_and_settings(
-                builder,
-                HttpsLayerSettings::builder()
-                    .session_cache_capacity(DEFAULT_SESSION_CACHE_CAPACITY)
-                    .build(),
-            )
+        // Create the `HttpsLayerSettings` with the default session cache capacity.
+        let settings_builder =
+            HttpsLayerSettings::builder().session_cache_capacity(DEFAULT_SESSION_CACHE_CAPACITY);
+
+        // Build the `HttpsLayer` with the given `SslConnectorBuilder` and `HttpsLayerSettings`.
+        let settings = if psk_extension || tls.pre_shared_key {
+            settings_builder.build()
         } else {
-            HttpsLayer::with_connector_and_no_cache(builder)
-        }
+            settings_builder
+                .session_cache_mode(SslSessionCacheMode::OFF)
+                .build()
+        };
+
+        HttpsLayer::with_connector_and_settings(builder, settings)
     }
 }
 
