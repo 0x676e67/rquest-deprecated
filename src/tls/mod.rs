@@ -158,19 +158,15 @@ impl TlsConnector {
         );
 
         // Create the `HttpsLayerSettings` with the default session cache capacity.
-        let settings_builder =
+        let mut settings_builder =
             HttpsLayerSettings::builder().session_cache_capacity(DEFAULT_SESSION_CACHE_CAPACITY);
 
         // Build the `HttpsLayer` with the given `SslConnectorBuilder` and `HttpsLayerSettings`.
-        let settings = if psk_extension || tls.pre_shared_key {
-            settings_builder.build()
-        } else {
-            settings_builder
-                .session_cache_mode(SslSessionCacheMode::OFF)
-                .build()
-        };
+        if !(psk_extension || tls.pre_shared_key) {
+            settings_builder = settings_builder.session_cache_mode(SslSessionCacheMode::OFF);
+        }
 
-        HttpsLayer::with_connector_and_settings(builder, settings)
+        HttpsLayer::with_connector_and_settings(builder, settings_builder.build())
     }
 }
 
