@@ -174,8 +174,6 @@ impl ClientBuilder {
 
         let proxies_maybe_http_auth = proxies.iter().any(|p| p.maybe_has_http_auth());
 
-    
-
         let mut connector = {
             #[cfg(feature = "boring-tls")]
             fn user_agent(headers: &HeaderMap) -> Option<HeaderValue> {
@@ -261,7 +259,9 @@ impl ClientBuilder {
         let settings = crate::tls::connect_settings(impersonate, &mut self.config.headers);
         self.config.tls.impersonate = impersonate;
         self.config.tls.builder = settings.tls_builder;
-        self.config.builder.http2_agent_profile(impersonate.profile().into());
+        self.config
+            .builder
+            .http2_agent_profile(impersonate.profile().into());
         self.http2_initial_stream_window_size(settings.http2.initial_stream_window_size)
             .http2_initial_connection_window_size(settings.http2.initial_connection_window_size)
             .http2_max_concurrent_streams(settings.http2.max_concurrent_streams)

@@ -94,17 +94,17 @@ impl Debug for TlsConnectorBuilder {
 #[derive(Clone)]
 pub struct TlsConnector {
     /// The inner `SslConnectorBuilder`.
-    builder: TlsConnectorBuilder,
+    tls: TlsConnectorBuilder,
     /// The TLS connector layer.
-    inner: Arc<OnceCell<HttpsLayer>>,
+    layer: Arc<OnceCell<HttpsLayer>>,
 }
 
 impl TlsConnector {
     /// Create a new `BoringTlsConnector` with the given function.
     pub fn new(builder: TlsConnectorBuilder) -> TlsConnector {
         Self {
-            builder,
-            inner: Arc::new(OnceCell::new()),
+            tls: builder,
+            layer: Arc::new(OnceCell::new()),
         }
     }
 
@@ -116,7 +116,7 @@ impl TlsConnector {
     ) -> Result<HttpsConnector<HttpConnector>, ErrorStack> {
         // Get the `HttpsLayer` or create it if it doesn't exist.
         let layer = self
-            .inner
+            .layer
             .get_or_try_init(|| self.build_layer())
             .await
             .map(Clone::clone)?;
@@ -125,7 +125,7 @@ impl TlsConnector {
         let mut http = HttpsConnector::with_connector_layer(http, layer);
 
         // Set the callback to add application settings.
-        let builder = self.builder.clone();
+        let builder = self.tls.clone();
         http.set_callback(move |conf, _| {
             configure_ssl_context(conf, &builder);
             Ok(())
@@ -135,7 +135,7 @@ impl TlsConnector {
     }
 
     async fn build_layer(&self) -> Result<HttpsLayer, ErrorStack> {
-        let tls = &self.builder;
+        let tls = &self.tls;
         // Create the `SslConnectorBuilder` and configure it.
         let builder = (tls.builder)()?
             .configure_alpn_protos(&tls.http_version_pref)?
@@ -165,7 +165,7 @@ impl TlsConnector {
                     .build(),
             )
         } else {
-            HttpsLayer::with_connector(builder)
+            HttpsLayer::with_connector_and_no_cache(builder)
         }
     }
 }
@@ -185,7 +185,7 @@ fn configure_ssl_context(conf: &mut ConnectConfiguration, ctx: &TlsConnectorBuil
 impl Debug for TlsConnector {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("BoringTlsConnector")
-            .field("builder", &self.builder.type_id())
+            .field("builder", &self.tls.type_id())
             .field("connector", &self.type_id())
             .finish()
     }
