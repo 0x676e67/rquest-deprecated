@@ -37,7 +37,7 @@ use crate::error;
 use crate::into_url::{expect_uri, try_uri};
 use crate::redirect::{self, remove_sensitive_headers};
 #[cfg(feature = "boring-tls")]
-use crate::tls::{self, Impersonate, SslBuilderSettings, TlsConnector};
+use crate::tls::{self, Impersonate, SslSettings, TlsConnector};
 use crate::{IntoUrl, Method, Proxy, StatusCode, Url};
 use log::{debug, trace};
 
@@ -105,7 +105,7 @@ struct Config {
     #[cfg(feature = "boring-tls")]
     tls_info: bool,
     #[cfg(feature = "boring-tls")]
-    ssl_settings: SslBuilderSettings,
+    ssl_settings: SslSettings,
     #[cfg(feature = "boring-tls")]
     ssl_builder: Option<SslConnectorBuilder>,
 }

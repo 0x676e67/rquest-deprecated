@@ -1,5 +1,5 @@
 use crate::tls::extension::{Extension, OkHttpExtension, SslExtension};
-use crate::tls::{Http2Settings, SslSettings};
+use crate::tls::{Http2Settings, SslBuilderSettings};
 use crate::tls::{Impersonate, TlsResult};
 use http::{
     header::{ACCEPT, ACCEPT_ENCODING, ACCEPT_LANGUAGE, USER_AGENT},
@@ -9,9 +9,9 @@ use http::{
 pub(crate) fn get_settings(
     impersonate: Impersonate,
     headers: &mut HeaderMap,
-) -> TlsResult<SslSettings> {
+) -> TlsResult<SslBuilderSettings> {
     init_headers(headers);
-    Ok(SslSettings {
+    Ok(SslBuilderSettings {
         ssl_builder: OkHttpExtension::builder()?.configure_cipher_list(&[
             "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
             "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",

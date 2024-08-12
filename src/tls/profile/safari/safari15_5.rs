@@ -1,6 +1,6 @@
 use super::OLD_CIPHER_LIST;
 use crate::tls::extension::{Extension, SafariExtension, SslExtension};
-use crate::tls::{Http2Settings, SslSettings};
+use crate::tls::{Http2Settings, SslBuilderSettings};
 use crate::tls::{Impersonate, TlsResult};
 use http::{
     header::{ACCEPT, ACCEPT_ENCODING, ACCEPT_LANGUAGE, USER_AGENT},
@@ -10,9 +10,9 @@ use http::{
 pub(crate) fn get_settings(
     impersonate: Impersonate,
     headers: &mut HeaderMap,
-) -> TlsResult<SslSettings> {
+) -> TlsResult<SslBuilderSettings> {
     init_headers(headers);
-    Ok(SslSettings {
+    Ok(SslBuilderSettings {
         ssl_builder: SafariExtension::builder()?.configure_cipher_list(&OLD_CIPHER_LIST)?,
         enable_psk: impersonate.psk_extension(),
         http2: Http2Settings {

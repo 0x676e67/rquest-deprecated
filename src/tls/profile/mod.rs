@@ -5,7 +5,7 @@ mod edge;
 mod okhttp;
 mod safari;
 
-use super::{SslSettings, TlsResult};
+use super::{SslBuilderSettings, TlsResult};
 use http::HeaderMap;
 use hyper::{PseudoOrder, SettingsOrder, StreamDependency, StreamId};
 use std::{fmt::Debug, str::FromStr};
@@ -21,7 +21,7 @@ macro_rules! impersonate_match {
 }
 
 /// Get the connection settings for the given impersonate version
-pub fn tls_settings(ver: Impersonate, headers: &mut HeaderMap) -> TlsResult<SslSettings> {
+pub fn tls_settings(ver: Impersonate, headers: &mut HeaderMap) -> TlsResult<SslBuilderSettings> {
     impersonate_match!(
         ver,
         headers,

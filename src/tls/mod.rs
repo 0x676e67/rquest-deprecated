@@ -31,7 +31,7 @@ type TlsResult<T> = std::result::Result<T, ErrorStack>;
 
 /// The TLS connector configuration.
 #[derive(Clone)]
-pub struct SslBuilderSettings {
+pub struct SslSettings {
     /// The client to impersonate.
     pub impersonate: Impersonate,
     /// The minimum TLS version to use.
@@ -51,7 +51,7 @@ pub struct SslBuilderSettings {
 }
 
 /// Connection settings
-pub struct SslSettings {
+pub struct SslBuilderSettings {
     /// The SSL connector builder.
     pub ssl_builder: SslConnectorBuilder,
     /// Enable PSK.
@@ -60,7 +60,7 @@ pub struct SslSettings {
     pub http2: Http2Settings,
 }
 
-impl Debug for SslSettings {
+impl Debug for SslBuilderSettings {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("TlsSettings")
             .field("tls_builder", &self.ssl_builder.type_id())
@@ -92,7 +92,7 @@ pub struct Http2Settings {
     pub settings_order: Option<[SettingsOrder; 2]>,
 }
 
-impl Default for SslBuilderSettings {
+impl Default for SslSettings {
     fn default() -> Self {
         Self {
             min_tls_version: None,
@@ -107,7 +107,7 @@ impl Default for SslBuilderSettings {
     }
 }
 
-impl Debug for SslBuilderSettings {
+impl Debug for SslSettings {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("TlsConnector")
             .field("min_tls_version", &self.min_tls_version)
@@ -126,17 +126,14 @@ impl Debug for SslBuilderSettings {
 #[derive(Clone)]
 pub struct TlsConnector {
     /// The TLS connector builder settings.
-    settings: SslBuilderSettings,
+    settings: SslSettings,
     /// The TLS connector layer.
     layer: HttpsLayer,
 }
 
 impl TlsConnector {
     /// Create a new `BoringTlsConnector` with the given function.
-    pub fn new(
-        settings: SslBuilderSettings,
-        ssl: Option<SslConnectorBuilder>,
-    ) -> TlsResult<TlsConnector> {
+    pub fn new(settings: SslSettings, ssl: Option<SslConnectorBuilder>) -> TlsResult<TlsConnector> {
         let ssl = match ssl {
             Some(ssl) => ssl,
             None => SslConnector::builder(SslMethod::tls_client())?,
@@ -163,10 +160,7 @@ impl TlsConnector {
         Ok(http)
     }
 
-    fn build_layer(
-        settings: SslBuilderSettings,
-        ssl: SslConnectorBuilder,
-    ) -> TlsResult<HttpsLayer> {
+    fn build_layer(settings: SslSettings, ssl: SslConnectorBuilder) -> TlsResult<HttpsLayer> {
         // Create the `SslConnectorBuilder` and configure it.
         let builder = ssl
             .configure_alpn_protos(&settings.http_version_pref)?
@@ -184,10 +178,7 @@ impl TlsConnector {
 }
 
 /// Add application settings to the given `ConnectConfiguration`.
-fn configure_ssl_context(
-    conf: &mut ConnectConfiguration,
-    ctx: &SslBuilderSettings,
-) -> TlsResult<()> {
+fn configure_ssl_context(conf: &mut ConnectConfiguration, ctx: &SslSettings) -> TlsResult<()> {
     if matches!(
         ctx.impersonate.profile(),
         TypedImpersonate::Chrome | TypedImpersonate::Edge
