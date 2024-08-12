@@ -35,9 +35,9 @@ pub(crate) fn get_settings(
             max_header_list_size: None,
             header_table_size: None,
             enable_push: None,
-            headers_priority: Some(impersonate.headers_priority()),
-            headers_pseudo_header: Some(impersonate.headers_pseudo_order()),
-            settings_order: Some(impersonate.settings_order()),
+            headers_priority: impersonate.headers_priority(),
+            headers_pseudo_header: impersonate.headers_pseudo_order(),
+            settings_order: impersonate.settings_order(),
         },
     })
 }

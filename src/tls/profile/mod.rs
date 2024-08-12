@@ -121,7 +121,7 @@ pub enum Impersonate {
 
 /// Impersonate version from string
 impl FromStr for Impersonate {
-    type Err = &'static str;
+    type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
@@ -169,7 +169,7 @@ impl FromStr for Impersonate {
             "edge_101" => Ok(Impersonate::Edge101),
             "edge_122" => Ok(Impersonate::Edge122),
             "edge_127" => Ok(Impersonate::Edge127),
-            _ => Err("Invalid impersonate version"),
+            _ => Err(format!("Unknown impersonate version: {}", s)),
         }
     }
 }
@@ -239,16 +239,16 @@ impl Impersonate {
         }
     }
 
-    pub fn headers_pseudo_order(&self) -> [PseudoOrder; 4] {
-        self.profile().headers_pseudo()
+    pub fn headers_pseudo_order(&self) -> Option<[PseudoOrder; 4]> {
+        Some(self.profile().headers_pseudo())
     }
 
-    pub fn headers_priority(&self) -> StreamDependency {
-        self.profile().headers_priority()
+    pub fn headers_priority(&self) -> Option<StreamDependency> {
+        Some(self.profile().headers_priority())
     }
 
-    pub fn settings_order(&self) -> [SettingsOrder; 2] {
-        self.profile().settings_order()
+    pub fn settings_order(&self) -> Option<[SettingsOrder; 2]> {
+        Some(self.profile().settings_order())
     }
 }
 

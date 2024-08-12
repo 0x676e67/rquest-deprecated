@@ -22,9 +22,9 @@ pub(crate) fn get_settings(
             max_header_list_size: Some(262144),
             header_table_size: Some(65536),
             enable_push: Some(false),
-            headers_priority: Some(impersonate.headers_priority()),
-            headers_pseudo_header: Some(impersonate.headers_pseudo_order()),
-            settings_order: Some(impersonate.settings_order()),
+            headers_priority: impersonate.headers_priority(),
+            headers_pseudo_header: impersonate.headers_pseudo_order(),
+            settings_order: impersonate.settings_order(),
         },
     })
 }
