@@ -5,14 +5,13 @@
 //! - Various parts of TLS can also be configured or even disabled on the
 //!   `ClientBuilder`.
 
-mod chrome;
-mod edge;
+#![allow(missing_docs)]
+mod cert_compression;
+pub mod connector;
 pub mod extension;
-mod okhttp;
 mod profile;
-mod safari;
 
-pub(crate) use self::profile::connect_settings;
+pub(crate) use self::profile::tls_settings;
 use crate::async_impl::client::HttpVersionPref;
 use crate::connect::HttpConnector;
 use crate::tls::extension::{SslConnectExtension, SslExtension};
@@ -21,23 +20,21 @@ use boring::{
     error::ErrorStack,
     ssl::{ConnectConfiguration, SslConnectorBuilder},
 };
-use hyper_boring::{HttpsConnector, HttpsLayer, HttpsLayerSettings};
-use profile::ClientProfile;
-pub use profile::{ConnectSettings, Http2Settings, Impersonate};
+use connector::{HttpsConnector, HttpsLayer, HttpsLayerSettings};
+use hyper::{PseudoOrder, SettingsOrder, StreamDependency};
+pub use profile::Impersonate;
+use profile::TypedImpersonate;
 use std::any::Any;
 use std::fmt::{self, Debug};
-use std::sync::Arc;
-use tokio::sync::OnceCell;
+
+type TlsResult<T> = std::result::Result<T, ErrorStack>;
 
 /// Default session cache capacity.
 const DEFAULT_SESSION_CACHE_CAPACITY: usize = 8;
 
-/// A TLS connector builder.
-type Builder = dyn Fn() -> Result<SslConnectorBuilder, ErrorStack> + Send + Sync + 'static;
-
 /// The TLS connector configuration.
 #[derive(Clone)]
-pub struct TlsConnectorBuilder {
+pub struct SslBuilderSettings {
     /// The client to impersonate.
     pub impersonate: Impersonate,
     /// The minimum TLS version to use.
@@ -54,11 +51,51 @@ pub struct TlsConnectorBuilder {
     pub pre_shared_key: bool,
     /// The HTTP version preference.
     pub http_version_pref: HttpVersionPref,
-    /// The SSL connector builder.
-    pub builder: Arc<Builder>,
 }
 
-impl Default for TlsConnectorBuilder {
+/// Connection settings
+pub struct SslSettings {
+    /// The SSL connector builder.
+    pub ssl_builder: SslConnectorBuilder,
+    /// Enable PSK.
+    pub enable_psk: bool,
+    /// HTTP/2 settings.
+    pub http2: Http2Settings,
+}
+
+impl Debug for SslSettings {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("TlsSettings")
+            .field("tls_builder", &self.ssl_builder.type_id())
+            .field("http2", &self.http2)
+            .finish()
+    }
+}
+
+/// HTTP/2 settings.
+#[derive(Debug)]
+pub struct Http2Settings {
+    /// The initial stream window size.
+    pub initial_stream_window_size: Option<u32>,
+    /// The initial connection window size.
+    pub initial_connection_window_size: Option<u32>,
+    /// The maximum concurrent streams.
+    pub max_concurrent_streams: Option<u32>,
+    /// The maximum header list size.
+    pub max_header_list_size: Option<u32>,
+    /// The header table size.
+    pub header_table_size: Option<u32>,
+    /// Enable push.
+    pub enable_push: Option<bool>,
+    /// The priority of the headers.
+    pub headers_priority: Option<StreamDependency>,
+    /// The pseudo header order.
+    pub headers_pseudo_header: Option<[PseudoOrder; 4]>,
+    /// The settings order.
+    pub settings_order: Option<[SettingsOrder; 2]>,
+}
+
+impl Default for SslBuilderSettings {
     fn default() -> Self {
         Self {
             min_tls_version: None,
@@ -69,12 +106,11 @@ impl Default for TlsConnectorBuilder {
             certs_verification: true,
             pre_shared_key: false,
             http_version_pref: HttpVersionPref::All,
-            builder: Arc::new(|| SslConnector::builder(SslMethod::tls())),
         }
     }
 }
 
-impl Debug for TlsConnectorBuilder {
+impl Debug for SslBuilderSettings {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("TlsConnector")
             .field("min_tls_version", &self.min_tls_version)
@@ -85,7 +121,6 @@ impl Debug for TlsConnectorBuilder {
             .field("certs_verification", &self.certs_verification)
             .field("pre_shared_key", &self.pre_shared_key)
             .field("http_version_pref", &self.http_version_pref)
-            .field("builder", &self.builder.type_id())
             .finish()
     }
 }
@@ -93,19 +128,26 @@ impl Debug for TlsConnectorBuilder {
 /// A wrapper around a `SslConnectorBuilder` that allows for additional settings.
 #[derive(Clone)]
 pub struct TlsConnector {
-    /// The inner `SslConnectorBuilder`.
-    tls: TlsConnectorBuilder,
+    /// The TLS connector builder settings.
+    settings: SslBuilderSettings,
     /// The TLS connector layer.
-    layer: Arc<OnceCell<HttpsLayer>>,
+    layer: HttpsLayer,
 }
 
 impl TlsConnector {
     /// Create a new `BoringTlsConnector` with the given function.
-    pub fn new(builder: TlsConnectorBuilder) -> TlsConnector {
-        Self {
-            tls: builder,
-            layer: Arc::new(OnceCell::new()),
-        }
+    pub fn new(
+        settings: SslBuilderSettings,
+        ssl: Option<SslConnectorBuilder>,
+    ) -> TlsResult<TlsConnector> {
+        let ssl = match ssl {
+            Some(ssl) => ssl,
+            None => SslConnector::builder(SslMethod::tls_client())?,
+        };
+        Ok(Self {
+            settings: settings.clone(),
+            layer: Self::build_layer(settings, ssl)?,
+        })
     }
 
     /// Create a new `HttpsConnector` with the settings from the `TlsContext`.
@@ -113,56 +155,34 @@ impl TlsConnector {
     pub(crate) async fn new_connector(
         &self,
         http: HttpConnector,
-    ) -> Result<HttpsConnector<HttpConnector>, ErrorStack> {
-        // Get the `HttpsLayer` or create it if it doesn't exist.
-        let layer = self
-            .layer
-            .get_or_try_init(|| self.build_layer())
-            .await
-            .map(Clone::clone)?;
-
+    ) -> TlsResult<HttpsConnector<HttpConnector>> {
         // Create the `HttpsConnector` with the given `HttpConnector` and `HttpsLayer`.
-        let mut http = HttpsConnector::with_connector_layer(http, layer);
+        let mut http = HttpsConnector::with_connector_layer(http, self.layer.clone());
 
         // Set the callback to add application settings.
-        let builder = self.tls.clone();
-        http.set_callback(move |conf, _| {
-            configure_ssl_context(conf, &builder);
-            Ok(())
-        });
+        let builder = self.settings.clone();
+        http.set_callback(move |conf, _| configure_ssl_context(conf, &builder));
 
         Ok(http)
     }
 
-    async fn build_layer(&self) -> Result<HttpsLayer, ErrorStack> {
-        let tls = &self.tls;
+    fn build_layer(
+        settings: SslBuilderSettings,
+        ssl: SslConnectorBuilder,
+    ) -> TlsResult<HttpsLayer> {
         // Create the `SslConnectorBuilder` and configure it.
-        let builder = (tls.builder)()?
-            .configure_alpn_protos(&tls.http_version_pref)?
-            .configure_cert_verification(tls.certs_verification)?
-            .configure_min_tls_version(tls.min_tls_version)?
-            .configure_max_tls_version(tls.max_tls_version)?;
-
-        // Check if the PSK extension should be enabled.
-        let psk_extension = matches!(
-            tls.impersonate,
-            Impersonate::Chrome116
-                | Impersonate::Chrome117
-                | Impersonate::Chrome120
-                | Impersonate::Chrome123
-                | Impersonate::Chrome124
-                | Impersonate::Chrome126
-                | Impersonate::Chrome127
-                | Impersonate::Edge122
-                | Impersonate::Edge127
-        );
+        let builder = ssl
+            .configure_alpn_protos(&settings.http_version_pref)?
+            .configure_cert_verification(settings.certs_verification)?
+            .configure_min_tls_version(settings.min_tls_version)?
+            .configure_max_tls_version(settings.max_tls_version)?;
 
         // Create the `HttpsLayerSettings` with the default session cache capacity.
         let mut settings_builder =
             HttpsLayerSettings::builder().session_cache_capacity(DEFAULT_SESSION_CACHE_CAPACITY);
 
         // Build the `HttpsLayer` with the given `SslConnectorBuilder` and `HttpsLayerSettings`.
-        if !(psk_extension || tls.pre_shared_key) {
+        if !settings.pre_shared_key {
             settings_builder = settings_builder.session_cache_mode(SslSessionCacheMode::OFF);
         }
 
@@ -171,21 +191,26 @@ impl TlsConnector {
 }
 
 /// Add application settings to the given `ConnectConfiguration`.
-fn configure_ssl_context(conf: &mut ConnectConfiguration, ctx: &TlsConnectorBuilder) {
+fn configure_ssl_context(
+    conf: &mut ConnectConfiguration,
+    ctx: &SslBuilderSettings,
+) -> TlsResult<()> {
     if matches!(
         ctx.impersonate.profile(),
-        ClientProfile::Chrome | ClientProfile::Edge
+        TypedImpersonate::Chrome | TypedImpersonate::Edge
     ) {
-        conf.configure_permute_extensions(ctx.permute_extensions)
-            .configure_enable_ech_grease(ctx.enable_ech_grease)
-            .configure_add_application_settings(ctx.http_version_pref);
+        conf.configure_permute_extensions(ctx.permute_extensions)?
+            .configure_enable_ech_grease(ctx.enable_ech_grease)?
+            .configure_add_application_settings(ctx.http_version_pref)?;
     }
+
+    Ok(())
 }
 
 impl Debug for TlsConnector {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("BoringTlsConnector")
-            .field("builder", &self.tls.type_id())
+            .field("builder", &self.settings.type_id())
             .field("connector", &self.type_id())
             .finish()
     }
