@@ -87,7 +87,7 @@ pub struct HttpsLayer {
 /// Settings for [`HttpsLayer`]
 pub struct HttpsLayerSettings {
     session_cache_capacity: usize,
-    no_session_cache: bool,
+    session_cache: bool,
 }
 
 impl HttpsLayerSettings {
@@ -101,7 +101,7 @@ impl Default for HttpsLayerSettings {
     fn default() -> Self {
         Self {
             session_cache_capacity: 8,
-            no_session_cache: false,
+            session_cache: true,
         }
     }
 }
@@ -117,9 +117,9 @@ impl HttpsLayerSettingsBuilder {
         self
     }
 
-    /// Disables session caching.
-    pub fn no_session_cache(mut self) -> Self {
-        self.0.no_session_cache = true;
+    /// Sets whether to enable session caching. Defaults to `true`.
+    pub fn session_cache(mut self, enable: bool) -> Self {
+        self.0.session_cache = enable;
         self
     }
 
@@ -143,7 +143,7 @@ impl HttpsLayer {
         settings: HttpsLayerSettings,
     ) -> TlsResult<HttpsLayer> {
         // If the session cache is disabled, we don't need to set up any callbacks.
-        let cache = if !settings.no_session_cache {
+        let cache = if settings.session_cache {
             let cache = Arc::new(Mutex::new(SessionCache::with_capacity(
                 settings.session_cache_capacity,
             )));

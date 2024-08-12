@@ -175,14 +175,11 @@ impl TlsConnector {
             .configure_max_tls_version(settings.max_tls_version)?;
 
         // Create the `HttpsLayerSettings` with the default session cache capacity.
-        let mut settings_builder = HttpsLayerSettings::builder();
+        let settings = HttpsLayerSettings::builder()
+            .session_cache(settings.pre_shared_key)
+            .build();
 
-        // Build the `HttpsLayer` with the given `SslConnectorBuilder` and `HttpsLayerSettings`.
-        if !settings.pre_shared_key {
-            settings_builder = settings_builder.no_session_cache();
-        }
-
-        HttpsLayer::with_connector_and_settings(builder, settings_builder.build())
+        HttpsLayer::with_connector_and_settings(builder, settings)
     }
 }
 
