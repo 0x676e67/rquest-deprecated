@@ -155,6 +155,7 @@ impl ClientBuilder {
                 tls_info: false,
                 #[cfg(feature = "boring-tls")]
                 ssl_settings: Default::default(),
+                #[cfg(feature = "boring-tls")]
                 ssl_builder: None,
             },
         }
