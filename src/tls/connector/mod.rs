@@ -6,8 +6,7 @@ mod cache;
 use antidote::Mutex;
 use boring::ex_data::Index;
 use boring::ssl::{
-    ConnectConfiguration, Ssl, SslConnector, SslConnectorBuilder, SslMethod, SslRef,
-    SslSessionCacheMode,
+    ConnectConfiguration, Ssl, SslConnector, SslConnectorBuilder, SslRef, SslSessionCacheMode,
 };
 
 use super::TlsResult;
@@ -15,7 +14,6 @@ use super::TlsResult;
 use cache::{SessionCache, SessionKey};
 use http::uri::Scheme;
 use hyper::client::connect::{Connected, Connection};
-use hyper::client::HttpConnector;
 use hyper::service::Service;
 use hyper::Uri;
 use std::fmt::Debug;
@@ -89,7 +87,7 @@ pub struct HttpsLayer {
 /// Settings for [`HttpsLayer`]
 pub struct HttpsLayerSettings {
     session_cache_capacity: usize,
-    session_cache_mode: Option<SslSessionCacheMode>,
+    no_session_cache: bool,
 }
 
 impl HttpsLayerSettings {
@@ -103,7 +101,7 @@ impl Default for HttpsLayerSettings {
     fn default() -> Self {
         Self {
             session_cache_capacity: 8,
-            session_cache_mode: None,
+            no_session_cache: false,
         }
     }
 }
@@ -119,9 +117,9 @@ impl HttpsLayerSettingsBuilder {
         self
     }
 
-    /// Sets the session cache mode. Defaults to `SslSessionCacheMode::CLIENT`.
-    pub fn session_cache_mode(mut self, mode: SslSessionCacheMode) -> Self {
-        self.0.session_cache_mode = Some(mode);
+    /// Disables session caching.
+    pub fn no_session_cache(mut self) -> Self {
+        self.0.no_session_cache = true;
         self
     }
 
@@ -132,17 +130,6 @@ impl HttpsLayerSettingsBuilder {
 }
 
 impl HttpsLayer {
-    /// Creates a new `HttpsLayer` with default settings.
-    ///
-    /// ALPN is configured to support both HTTP/1 and HTTP/1.1.
-    pub fn new() -> TlsResult<HttpsLayer> {
-        let mut ssl = SslConnector::builder(SslMethod::tls())?;
-
-        ssl.set_alpn_protos(b"\x02h2\x08http/1.1")?;
-
-        Self::with_connector(ssl)
-    }
-
     /// Creates a new `HttpsLayer`.
     ///
     /// The session cache configuration of `ssl` will be overwritten.
@@ -155,29 +142,32 @@ impl HttpsLayer {
         mut ssl: SslConnectorBuilder,
         settings: HttpsLayerSettings,
     ) -> TlsResult<HttpsLayer> {
-        let cache = Arc::new(Mutex::new(SessionCache::with_capacity(
-            settings.session_cache_capacity,
-        )));
+        // If the session cache is disabled, we don't need to set up any callbacks.
+        let cache = if !settings.no_session_cache {
+            let cache = Arc::new(Mutex::new(SessionCache::with_capacity(
+                settings.session_cache_capacity,
+            )));
 
-        ssl.set_session_cache_mode(
-            settings
-                .session_cache_mode
-                .unwrap_or_else(|| SslSessionCacheMode::CLIENT),
-        );
+            ssl.set_session_cache_mode(SslSessionCacheMode::CLIENT);
 
-        ssl.set_new_session_callback({
-            let cache = cache.clone();
-            move |ssl, session| {
-                if let Some(key) = key_index().ok().and_then(|idx| ssl.ex_data(idx)) {
-                    cache.lock().insert(key.clone(), session);
+            ssl.set_new_session_callback({
+                let cache = cache.clone();
+                move |ssl, session| {
+                    if let Some(key) = key_index().ok().and_then(|idx| ssl.ex_data(idx)) {
+                        cache.lock().insert(key.clone(), session);
+                    }
                 }
-            }
-        });
+            });
+
+            Some(cache)
+        } else {
+            None
+        };
 
         Ok(HttpsLayer {
             inner: Inner {
                 ssl: ssl.build(),
-                cache: Some(cache),
+                cache,
                 callback: None,
                 ssl_callback: None,
             },
@@ -221,21 +211,6 @@ impl<S> Layer<S> for HttpsLayer {
 pub struct HttpsConnector<T> {
     http: T,
     inner: Inner,
-}
-
-impl HttpsConnector<HttpConnector> {
-    /// Creates a a new `HttpsConnector` using default settings.
-    ///
-    /// The Hyper `HttpConnector` is used to perform the TCP socket connection. ALPN is configured to support both
-    /// HTTP/2 and HTTP/1.1.
-    ///
-    /// Requires the `runtime` Cargo feature.
-    pub fn new() -> TlsResult<HttpsConnector<HttpConnector>> {
-        let mut http = HttpConnector::new();
-        http.enforce_http(false);
-
-        HttpsLayer::new().map(|l| l.layer(http))
-    }
 }
 
 impl<S, T> HttpsConnector<S>

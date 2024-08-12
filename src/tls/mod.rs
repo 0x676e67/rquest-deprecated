@@ -15,7 +15,7 @@ pub(crate) use self::profile::tls_settings;
 use crate::async_impl::client::HttpVersionPref;
 use crate::connect::HttpConnector;
 use crate::tls::extension::{SslConnectExtension, SslExtension};
-use boring::ssl::{SslConnector, SslMethod, SslSessionCacheMode};
+use boring::ssl::{SslConnector, SslMethod};
 use boring::{
     error::ErrorStack,
     ssl::{ConnectConfiguration, SslConnectorBuilder},
@@ -28,9 +28,6 @@ use std::any::Any;
 use std::fmt::{self, Debug};
 
 type TlsResult<T> = std::result::Result<T, ErrorStack>;
-
-/// Default session cache capacity.
-const DEFAULT_SESSION_CACHE_CAPACITY: usize = 8;
 
 /// The TLS connector configuration.
 #[derive(Clone)]
@@ -178,12 +175,11 @@ impl TlsConnector {
             .configure_max_tls_version(settings.max_tls_version)?;
 
         // Create the `HttpsLayerSettings` with the default session cache capacity.
-        let mut settings_builder =
-            HttpsLayerSettings::builder().session_cache_capacity(DEFAULT_SESSION_CACHE_CAPACITY);
+        let mut settings_builder = HttpsLayerSettings::builder();
 
         // Build the `HttpsLayer` with the given `SslConnectorBuilder` and `HttpsLayerSettings`.
         if !settings.pre_shared_key {
-            settings_builder = settings_builder.session_cache_mode(SslSessionCacheMode::OFF);
+            settings_builder = settings_builder.no_session_cache();
         }
 
         HttpsLayer::with_connector_and_settings(builder, settings_builder.build())
