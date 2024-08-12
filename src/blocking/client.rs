@@ -19,6 +19,8 @@ use crate::tls;
 #[cfg(feature = "boring-tls")]
 use crate::tls::Impersonate;
 use crate::{async_impl, header, redirect, IntoUrl, Method, Proxy};
+#[cfg(feature = "http2")]
+use hyper::{PseudoOrder, SettingsOrder, StreamDependency};
 
 /// A `Client` to make Requests with.
 ///
@@ -573,7 +575,7 @@ impl ClientBuilder {
     /// Default is `None`.
     #[cfg(feature = "http2")]
     pub fn http2_headers_pseudo_order(
-        mut self,
+        self,
         order: impl Into<Option<[PseudoOrder; 4]>>,
     ) -> ClientBuilder {
         self.with_inner(|inner| inner.http2_headers_pseudo_order(order))
@@ -583,7 +585,7 @@ impl ClientBuilder {
     /// Default is `None`.
     #[cfg(feature = "http2")]
     pub fn http2_headers_priority(
-        mut self,
+        self,
         priority: impl Into<Option<StreamDependency>>,
     ) -> ClientBuilder {
         self.with_inner(|inner| inner.http2_headers_priority(priority))
@@ -594,7 +596,7 @@ impl ClientBuilder {
     /// Default is `None`.
     #[cfg(feature = "http2")]
     pub fn http2_settings_order(
-        mut self,
+        self,
         order: impl Into<Option<[SettingsOrder; 2]>>,
     ) -> ClientBuilder {
         self.with_inner(|inner| inner.http2_settings_order(order))

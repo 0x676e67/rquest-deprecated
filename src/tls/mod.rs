@@ -12,8 +12,6 @@ pub mod extension;
 mod profile;
 mod settings;
 
-pub(crate) use self::profile::tls_settings;
-use crate::async_impl::client::HttpVersionPref;
 use crate::connect::HttpConnector;
 use crate::tls::extension::{SslConnectExtension, SslExtension};
 use boring::ssl::{SslConnector, SslMethod};
@@ -22,107 +20,15 @@ use boring::{
     ssl::{ConnectConfiguration, SslConnectorBuilder},
 };
 use connector::{HttpsConnector, HttpsLayer, HttpsLayerSettings};
-pub use settings::{Http2Settings, SslBuilderSettings, SslContextSettings, SslSettings};
-use hyper::{PseudoOrder, SettingsOrder, StreamDependency};
+pub(crate) use profile::tls_settings;
 pub use profile::Impersonate;
 use profile::TypedImpersonate;
+
+pub use settings::{Http2Settings, SslBuilderSettings, SslContextSettings, SslSettings};
 use std::any::Any;
 use std::fmt::{self, Debug};
 
 type TlsResult<T> = std::result::Result<T, ErrorStack>;
-
-/// The TLS connector configuration.
-#[derive(Clone)]
-pub struct SslSettings {
-    /// The client to impersonate.
-    pub impersonate: Impersonate,
-    /// The minimum TLS version to use.
-    pub min_tls_version: Option<Version>,
-    /// The maximum TLS version to use.
-    pub max_tls_version: Option<Version>,
-    /// Enable ECH grease.
-    pub enable_ech_grease: bool,
-    /// Permute extensions.
-    pub permute_extensions: bool,
-    /// Verify certificates.
-    pub certs_verification: bool,
-    /// Use a pre-shared key.
-    pub pre_shared_key: bool,
-    /// The HTTP version preference.
-    pub http_version_pref: HttpVersionPref,
-}
-
-/// Connection settings
-pub struct SslBuilderSettings {
-    /// The SSL connector builder.
-    pub ssl_builder: SslConnectorBuilder,
-    /// Enable PSK.
-    pub enable_psk: bool,
-    /// HTTP/2 settings.
-    pub http2: Http2Settings,
-}
-
-impl Debug for SslBuilderSettings {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("TlsSettings")
-            .field("tls_builder", &self.ssl_builder.type_id())
-            .field("http2", &self.http2)
-            .finish()
-    }
-}
-
-/// HTTP/2 settings.
-#[derive(Debug)]
-pub struct Http2Settings {
-    /// The initial stream window size.
-    pub initial_stream_window_size: Option<u32>,
-    /// The initial connection window size.
-    pub initial_connection_window_size: Option<u32>,
-    /// The maximum concurrent streams.
-    pub max_concurrent_streams: Option<u32>,
-    /// The maximum header list size.
-    pub max_header_list_size: Option<u32>,
-    /// The header table size.
-    pub header_table_size: Option<u32>,
-    /// Enable push.
-    pub enable_push: Option<bool>,
-    /// The priority of the headers.
-    pub headers_priority: Option<StreamDependency>,
-    /// The pseudo header order.
-    pub headers_pseudo_header: Option<[PseudoOrder; 4]>,
-    /// The settings order.
-    pub settings_order: Option<[SettingsOrder; 2]>,
-}
-
-impl Default for SslSettings {
-    fn default() -> Self {
-        Self {
-            min_tls_version: None,
-            max_tls_version: None,
-            impersonate: Default::default(),
-            enable_ech_grease: false,
-            permute_extensions: false,
-            certs_verification: true,
-            pre_shared_key: false,
-            http_version_pref: HttpVersionPref::All,
-        }
-    }
-}
-
-impl Debug for SslSettings {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("TlsConnector")
-            .field("min_tls_version", &self.min_tls_version)
-            .field("max_tls_version", &self.max_tls_version)
-            .field("impersonate", &self.impersonate)
-            .field("enable_ech_grease", &self.enable_ech_grease)
-            .field("permute_extensions", &self.permute_extensions)
-            .field("certs_verification", &self.certs_verification)
-            .field("pre_shared_key", &self.pre_shared_key)
-            .field("http_version_pref", &self.http_version_pref)
-            .finish()
-    }
-}
 
 /// A wrapper around a `SslConnectorBuilder` that allows for additional settings.
 #[derive(Clone)]

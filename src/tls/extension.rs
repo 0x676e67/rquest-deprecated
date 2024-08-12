@@ -17,14 +17,6 @@ fn sv_handler(r: c_int) -> Result<c_int, ErrorStack> {
     }
 }
 
-fn sv_handler(r: c_int) -> Result<c_int, ErrorStack> {
-    if r == 0 {
-        Err(ErrorStack::get())
-    } else {
-        Ok(r)
-    }
-}
-
 /// Extension trait for `SslConnector`.
 pub trait Extension {
     /// The signature algorithms list.
