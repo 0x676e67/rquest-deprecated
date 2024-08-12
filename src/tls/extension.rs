@@ -244,7 +244,11 @@ impl SslExtension for SslConnectorBuilder {
             HttpVersionPref::Http1 => {
                 self.set_alpn_protos(b"\x08http/1.1")?;
             }
-            HttpVersionPref::Http2 | HttpVersionPref::All => {
+            #[cfg(feature = "http2")]
+            HttpVersionPref::Http2 => {
+                self.set_alpn_protos(b"\x02h2")?;
+            }
+            HttpVersionPref::All => {
                 self.set_alpn_protos(b"\x02h2\x08http/1.1")?;
             }
         }
@@ -337,7 +341,10 @@ impl SslConnectExtension for ConnectConfiguration {
     ) -> TlsResult<&mut ConnectConfiguration> {
         let (alpn, alpn_len) = match http_version {
             HttpVersionPref::Http1 => ("http/1.1", 8),
+            #[cfg(feature = "http2")]
             HttpVersionPref::Http2 | HttpVersionPref::All => ("h2", 2),
+            #[cfg(not(feature = "http2"))]
+            HttpVersionPref::All => ("http/1.1", 8),
         };
 
         unsafe {

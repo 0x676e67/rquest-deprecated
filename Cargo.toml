@@ -19,7 +19,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 targets = ["x86_64-unknown-linux-gnu"]
 
 [features]
-default = ["boring-tls"]
+default = ["boring-tls", "http2"]
 
 full = [
     "boring-tls",
@@ -31,7 +31,10 @@ full = [
     "stream",
     "cookies",
     "socks",
+    "http2"
 ]
+
+http2 = ["h2", "hyper/http2"]
 
 blocking = ["futures-util/io", "tokio/sync"]
 
@@ -100,11 +103,10 @@ http-body = "0.4.6"
 hyper = { package = "rhyper", version = "0.14", default-features = false, features = [
     "tcp",
     "http1",
-    "http2",
     "client",
     "runtime",
 ] }
-h2 = { package = "rh2", version = "0.3" }
+h2 = { package = "rh2", version = "0.3", optional = true}
 log = "0.4"
 mime = "0.3.17"
 percent-encoding = "2.3"
