@@ -72,7 +72,6 @@ pub fn tls_settings(ver: Impersonate, headers: &mut HeaderMap) -> TlsResult<SslB
     )
 }
 
-#[allow(missing_docs)]
 #[derive(Clone, Copy, Debug, Default)]
 pub enum Impersonate {
     Chrome100,
