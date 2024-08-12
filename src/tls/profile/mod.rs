@@ -254,7 +254,7 @@ impl Impersonate {
 
 /// Client profile to impersonate
 #[derive(Debug, Clone, Copy)]
-pub(super) enum TypedImpersonate {
+pub enum TypedImpersonate {
     /// Chrome impersonate client profile
     Chrome,
     /// OkHttp impersonate client profile
