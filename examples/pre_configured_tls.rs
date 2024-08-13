@@ -2,11 +2,11 @@ use std::error::Error;
 
 use boring::ssl::{SslConnector, SslMethod};
 use http::HeaderValue;
-use hyper::{PseudoOrder, SettingsOrder, StreamDependency, StreamId};
 use rquest::{
     tls::{Http2FrameSettings, TlsExtensionSettings, TlsSettings, Version},
     HttpVersionPref,
 };
+use rquest::{PseudoOrder, SettingsOrder, StreamDependency, StreamId};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {

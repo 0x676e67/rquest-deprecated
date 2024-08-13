@@ -359,6 +359,9 @@ pub use self::async_impl::{
 };
 pub use self::proxy::{NoProxy, Proxy};
 
+#[cfg(all(feature = "boring-tls", feature = "http2"))]
+pub use hyper::{PseudoOrder, SettingsOrder, StreamDependency, StreamId};
+
 mod async_impl;
 #[cfg(feature = "blocking")]
 pub mod blocking;
