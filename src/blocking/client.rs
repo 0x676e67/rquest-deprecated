@@ -109,12 +109,11 @@ impl ClientBuilder {
 
     /// Use the preconfigured TLS settings.
     #[cfg(feature = "boring-tls")]
-    pub fn use_preconfigured_tls<F1, F2>(self, f1: F1, f2: F2) -> ClientBuilder
+    pub fn use_preconfigured_tls<F>(self, settings: TlsSettings, func: F) -> ClientBuilder
     where
-        F1: FnOnce() -> TlsSettings,
-        F2: FnOnce(&mut HeaderMap),
+        F: FnOnce(&mut HeaderMap),
     {
-        self.with_inner(move |inner| inner.use_preconfigured_tls(f))
+        self.with_inner(move |inner| inner.use_preconfigured_tls(settings, func))
     }
 
     /// Enable Encrypted Client Hello (Secure SNI)

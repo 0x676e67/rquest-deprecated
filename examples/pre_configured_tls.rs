@@ -45,12 +45,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     // Build a client with pre-configured TLS settings
     let client = rquest::Client::builder()
-        .use_preconfigured_tls(
-            || settings,
-            |headers| {
-                headers.insert("user-agent", HeaderValue::from_static("rquest"));
-            },
-        )
+        .use_preconfigured_tls(settings, |headers| {
+            headers.insert("user-agent", HeaderValue::from_static("rquest"));
+        })
         .enable_ech_grease()
         .permute_extensions()
         .build()?;
