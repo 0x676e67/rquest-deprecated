@@ -42,11 +42,11 @@ pub(crate) fn get_settings(
                 settings_order: settings.settings_order,
             },
         },
-        init_headers,
+        header_initializer,
     ))
 }
 
-fn init_headers(headers: &mut HeaderMap) {
+fn header_initializer(headers: &mut HeaderMap) {
     headers.insert(ACCEPT, HeaderValue::from_static("*/*"));
     headers.insert(
         ACCEPT_LANGUAGE,

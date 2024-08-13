@@ -26,11 +26,11 @@ pub(crate) fn get_settings(
                 settings_order: settings.settings_order,
             },
         },
-        init_headers,
+        header_initializer,
     ))
 }
 
-fn init_headers(headers: &mut HeaderMap) {
+fn header_initializer(headers: &mut HeaderMap) {
     headers.insert(USER_AGENT, HeaderValue::from_static("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6.1 Safari/605.1.15"));
     headers.insert(
         ACCEPT,

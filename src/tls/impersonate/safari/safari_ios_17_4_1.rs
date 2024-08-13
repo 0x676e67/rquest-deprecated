@@ -26,11 +26,11 @@ pub(crate) fn get_settings(
                 settings_order: settings.settings_order,
             },
         },
-        init_headers,
+        header_initializer,
     ))
 }
 
-fn init_headers(headers: &mut HeaderMap) {
+fn header_initializer(headers: &mut HeaderMap) {
     headers.insert(
         ACCEPT,
         HeaderValue::from_static("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"),
