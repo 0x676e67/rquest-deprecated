@@ -15,10 +15,10 @@ use super::request::{Request, RequestBuilder};
 use super::response::Response;
 use super::wait;
 #[cfg(feature = "boring-tls")]
-use crate::tls;
-#[cfg(feature = "boring-tls")]
-use crate::tls::Impersonate;
+use crate::tls::{Impersonate, TlsSettings, Version};
 use crate::{async_impl, header, redirect, IntoUrl, Method, Proxy};
+#[cfg(feature = "boring-tls")]
+use header::HeaderMap;
 #[cfg(feature = "http2")]
 use hyper::{PseudoOrder, SettingsOrder, StreamDependency};
 
@@ -105,6 +105,16 @@ impl ClientBuilder {
     #[cfg_attr(docsrs, doc(cfg(feature = "boring-tls")))]
     pub fn impersonate(self, ver: Impersonate) -> ClientBuilder {
         self.with_inner(move |inner| inner.impersonate(ver))
+    }
+
+    /// Use the preconfigured TLS settings.
+    #[cfg(feature = "boring-tls")]
+    pub fn use_preconfigured_tls<F1, F2>(self, f1: F1, f2: F2) -> ClientBuilder
+    where
+        F1: FnOnce() -> TlsSettings,
+        F2: FnOnce(&mut HeaderMap),
+    {
+        self.with_inner(move |inner| inner.use_preconfigured_tls(f))
     }
 
     /// Enable Encrypted Client Hello (Secure SNI)
@@ -699,7 +709,7 @@ impl ClientBuilder {
     ///
     /// feature to be enabled.
     #[cfg(feature = "boring-tls")]
-    pub fn min_tls_version(self, version: tls::Version) -> ClientBuilder {
+    pub fn min_tls_version(self, version: Version) -> ClientBuilder {
         self.with_inner(|inner| inner.min_tls_version(version))
     }
 
@@ -718,7 +728,7 @@ impl ClientBuilder {
     ///
     /// feature to be enabled.
     #[cfg(feature = "boring-tls")]
-    pub fn max_tls_version(self, version: tls::Version) -> ClientBuilder {
+    pub fn max_tls_version(self, version: Version) -> ClientBuilder {
         self.with_inner(|inner| inner.max_tls_version(version))
     }
 

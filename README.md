@@ -10,12 +10,13 @@ An fast asynchronous Rust `Http`/`WebSocket` Client with `TLS`/`JA3`/`JA4`/`HTTP
 
 - `Async` or `blocking` Clients
 - `Plain`, `JSON`, `urlencoded`, `multipart` bodies
-- Customizable `headers` order
+- `Headers` order
 - Customizable `redirect` policy
 - Cookie Store
 - `HTTP`/`HTTPS`/`SOCKS5` Proxies
 - `HTTPS`/`WebSocket` via [BoringSSL](https://github.com/cloudflare/boring)
 - `JA3`/`JA4`/`HTTP2` fingerprint
+- Preconfigured `TLS`/`HTTP2` settings
 - Impersonate `Chrome`/`Safari`/`Edge`/`OkHttp`
 
 Additional learning resources include:

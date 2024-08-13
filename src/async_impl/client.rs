@@ -280,14 +280,12 @@ impl ClientBuilder {
 
     /// Use the preconfigured TLS settings.
     #[cfg(feature = "boring-tls")]
-    #[cfg(feature = "boring-tls")]
-    pub fn use_preconfigured_tls<F>(self, f: F) -> ClientBuilder
+    pub fn use_preconfigured_tls<F1, F2>(self, f1: F1, f2: F2) -> ClientBuilder
     where
-        F: FnOnce(&mut HeaderMap) -> TlsSettings,
+        F1: FnOnce() -> TlsSettings,
+        F2: FnOnce(&mut HeaderMap),
     {
-        let mut headers = self.config.headers.clone();
-        let settings = f(&mut headers);
-        self.apply_tls_settings(settings, |_| {})
+        self.apply_tls_settings(f1(), f2)
     }
 
     /// Apply the given TLS settings and header function.

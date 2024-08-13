@@ -1,6 +1,7 @@
 use std::error::Error;
 
 use boring::ssl::{SslConnector, SslMethod};
+use http::HeaderValue;
 use hyper::{PseudoOrder, SettingsOrder, StreamDependency, StreamId};
 use rquest::{
     tls::{Http2FrameSettings, TlsExtensionSettings, TlsSettings, Version},
@@ -42,9 +43,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
         },
     };
 
-    // Build a client to mimic Edge127
+    // Build a client with pre-configured TLS settings
     let client = rquest::Client::builder()
-        .use_preconfigured_tls(|_headers| settings)
+        .use_preconfigured_tls(
+            || settings,
+            |headers| {
+                headers.insert("user-agent", HeaderValue::from_static("rquest"));
+            },
+        )
         .enable_ech_grease()
         .permute_extensions()
         .build()?;
