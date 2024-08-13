@@ -353,7 +353,8 @@ pub use self::async_impl::websocket::{
     CloseCode, Message, WebSocket, WebSocketRequestBuilder, WebSocketResponse,
 };
 pub use self::async_impl::{
-    Body, Client, ClientBuilder, Request, RequestBuilder, Response, Upgraded,
+    client::HttpVersionPref, Body, Client, ClientBuilder, Request, RequestBuilder, Response,
+    Upgraded,
 };
 pub use self::proxy::{NoProxy, Proxy};
 
