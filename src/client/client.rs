@@ -301,14 +301,14 @@ impl ClientBuilder {
     fn apply_tls_settings<F>(
         mut self,
         settings: TlsSettings,
-        func: F,
+        header_initializer: F,
         set_headers: bool,
     ) -> ClientBuilder
     where
         F: FnOnce(&mut HeaderMap),
     {
         if set_headers {
-            func(&mut self.config.headers);
+            header_initializer(&mut self.config.headers);
         }
         self.config.tls.builder = Some(settings.builder);
         self.config.tls.extension = settings.extension;
