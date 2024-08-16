@@ -271,7 +271,11 @@ impl ClientBuilder {
     /// This will set the necessary headers and TLS settings.
     /// This is only available with the `boring-tls` feature.
     #[cfg(feature = "boring-tls")]
-    pub fn impersonate_with_headers(self, impersonate: Impersonate, set_headers: bool) -> ClientBuilder {
+    pub fn impersonate_with_headers(
+        self,
+        impersonate: Impersonate,
+        set_headers: bool,
+    ) -> ClientBuilder {
         // Try to get the settings for the impersonate version
         if let Ok((settings, func)) = tls::tls_settings(impersonate) {
             return self.apply_tls_settings(settings, func, set_headers);
@@ -290,7 +294,12 @@ impl ClientBuilder {
 
     /// Apply the given TLS settings and header function.
     #[cfg(feature = "boring-tls")]
-    fn apply_tls_settings<F>(mut self, settings: TlsSettings, func: F, set_headers: bool) -> ClientBuilder
+    fn apply_tls_settings<F>(
+        mut self,
+        settings: TlsSettings,
+        func: F,
+        set_headers: bool,
+    ) -> ClientBuilder
     where
         F: FnOnce(&mut HeaderMap),
     {
