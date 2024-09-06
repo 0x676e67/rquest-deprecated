@@ -6,7 +6,7 @@ use std::{fmt, str};
 
 use bytes::Bytes;
 use http::header::{
-    Entry, HeaderMap, HeaderValue, ACCEPT, ACCEPT_ENCODING, CONTENT_ENCODING, CONTENT_LENGTH,
+    self, Entry, HeaderMap, HeaderValue, ACCEPT, ACCEPT_ENCODING, CONTENT_ENCODING, CONTENT_LENGTH,
     CONTENT_TYPE, LOCATION, PROXY_AUTHORIZATION, RANGE, REFERER, TRANSFER_ENCODING, USER_AGENT,
 };
 use http::uri::Scheme;
@@ -445,6 +445,14 @@ impl ClientBuilder {
     /// Otherwise it will be inserted by hyper after sorting.
     pub fn headers_order(mut self, order: Vec<HeaderName>) -> ClientBuilder {
         self.config.headers_order = Some(order);
+        self
+    }
+
+    /// Default accpet
+    pub fn default_accpet(mut self) -> ClientBuilder {
+        self.config
+            .headers
+            .insert(header::ACCEPT, HeaderValue::from_static("*/*"));
         self
     }
 
@@ -1349,20 +1357,12 @@ impl Client {
             return Pending::new_err(error::url_bad_scheme(url));
         }
 
-        let mut accept = false;
-
         // insert default headers in the request headers
         // without overwriting already appended headers.
         for (key, value) in &self.inner.headers {
             if let Entry::Vacant(entry) = headers.entry(key) {
-                accept = ACCEPT.eq(key);
                 entry.insert(value.clone());
             }
-        }
-
-        // Default accpet
-        if accept || headers.is_empty() {
-            headers.insert(ACCEPT, HeaderValue::from_static("*/*"));
         }
 
         // Add cookies from the cookie store.
