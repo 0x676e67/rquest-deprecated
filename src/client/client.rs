@@ -6,7 +6,7 @@ use std::{fmt, str};
 
 use bytes::Bytes;
 use http::header::{
-    self, Entry, HeaderMap, HeaderValue, ACCEPT, ACCEPT_ENCODING, CONTENT_ENCODING, CONTENT_LENGTH,
+    Entry, HeaderMap, HeaderValue, ACCEPT, ACCEPT_ENCODING, CONTENT_ENCODING, CONTENT_LENGTH,
     CONTENT_TYPE, LOCATION, PROXY_AUTHORIZATION, RANGE, REFERER, TRANSFER_ENCODING, USER_AGENT,
 };
 use http::uri::Scheme;
@@ -452,7 +452,7 @@ impl ClientBuilder {
     pub fn default_accpet(mut self) -> ClientBuilder {
         self.config
             .headers
-            .insert(header::ACCEPT, HeaderValue::from_static("*/*"));
+            .insert(ACCEPT, HeaderValue::from_static("*/*"));
         self
     }
 
