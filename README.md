@@ -1,4 +1,4 @@
-# The project has been moved to: https://github.com/penumbra-x/rquest
+# The project has been moved to: https://github.com/0x676e67/rquest
 
 # rquest
 
